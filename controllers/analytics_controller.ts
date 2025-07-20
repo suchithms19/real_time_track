@@ -1,7 +1,10 @@
 import type { Request, Response } from "express";
-import { VisitorEventSchema, AnalyticsQuerySchema } from "../schemas/validation.js";
-import { AnalyticsService } from "../services/analytics_service.js";
-import { WebSocketService } from "../services/websocket_service.js";
+import {
+	VisitorEventSchema,
+	AnalyticsQuerySchema,
+} from "../schemas/validation.js";
+import type { AnalyticsService } from "../services/analytics_service.js";
+import type { WebSocketService } from "../services/websocket_service.js";
 
 /**
  * Controller for handling analytics REST API endpoints
@@ -17,11 +20,14 @@ export class AnalyticsController {
 	 * POST /api/events
 	 * Receives and processes visitor events from websites
 	 */
-	public async receive_visitor_event(req: Request, res: Response): Promise<void> {
+	public async receive_visitor_event(
+		req: Request,
+		res: Response,
+	): Promise<void> {
 		try {
 			// Validate the incoming event data
 			const validation_result = VisitorEventSchema.safeParse(req.body);
-			
+
 			if (!validation_result.success) {
 				res.status(400).json({
 					error: "Invalid event data",
@@ -31,9 +37,10 @@ export class AnalyticsController {
 			}
 
 			const visitor_event = validation_result.data;
-			
+
 			// Process the event through analytics service
-			const { session, summary } = this.analytics_service.process_visitor_event(visitor_event);
+			const { session, summary } =
+				this.analytics_service.process_visitor_event(visitor_event);
 
 			// Broadcast the update to all connected WebSocket clients
 			this.websocket_service.broadcast_visitor_update(visitor_event, summary);
@@ -42,7 +49,11 @@ export class AnalyticsController {
 			// Check for alerts and broadcast if any
 			const alert = this.analytics_service.check_for_alerts();
 			if (alert) {
-				this.websocket_service.broadcast_alert(alert.level, alert.message, alert.details);
+				this.websocket_service.broadcast_alert(
+					alert.level,
+					alert.message,
+					alert.details,
+				);
 			}
 
 			// Send successful response
@@ -54,7 +65,6 @@ export class AnalyticsController {
 					current_stats: summary,
 				},
 			});
-
 		} catch (error) {
 			console.error("Error processing visitor event:", error);
 			res.status(500).json({
@@ -68,11 +78,14 @@ export class AnalyticsController {
 	 * GET /api/analytics/summary
 	 * Returns current analytics summary statistics
 	 */
-	public async get_analytics_summary(req: Request, res: Response): Promise<void> {
+	public async get_analytics_summary(
+		req: Request,
+		res: Response,
+	): Promise<void> {
 		try {
 			// Validate query parameters
 			const query_validation = AnalyticsQuerySchema.safeParse(req.query);
-			
+
 			if (!query_validation.success) {
 				res.status(400).json({
 					error: "Invalid query parameters",
@@ -82,7 +95,7 @@ export class AnalyticsController {
 			}
 
 			const query_params = query_validation.data;
-			
+
 			// Generate current summary
 			const summary = this.analytics_service.generate_summary();
 
@@ -93,7 +106,7 @@ export class AnalyticsController {
 			};
 
 			const has_filters = filter.country || filter.page;
-			const detailed_stats = has_filters 
+			const detailed_stats = has_filters
 				? this.analytics_service.get_detailed_stats(filter)
 				: undefined;
 
@@ -105,7 +118,6 @@ export class AnalyticsController {
 					generated_at: new Date().toISOString(),
 				},
 			});
-
 		} catch (error) {
 			console.error("Error getting analytics summary:", error);
 			res.status(500).json({
@@ -123,7 +135,7 @@ export class AnalyticsController {
 		try {
 			// Validate query parameters
 			const query_validation = AnalyticsQuerySchema.safeParse(req.query);
-			
+
 			if (!query_validation.success) {
 				res.status(400).json({
 					error: "Invalid query parameters",
@@ -133,7 +145,7 @@ export class AnalyticsController {
 			}
 
 			const query_params = query_validation.data;
-			
+
 			// Get active sessions with optional filtering
 			const filter = {
 				country: query_params.country,
@@ -143,7 +155,7 @@ export class AnalyticsController {
 			const sessions = this.analytics_service.get_active_sessions(filter);
 
 			// Apply limit if specified
-			const limited_sessions = query_params.limit 
+			const limited_sessions = query_params.limit
 				? sessions.slice(0, query_params.limit)
 				: sessions;
 
@@ -156,7 +168,6 @@ export class AnalyticsController {
 					retrieved_at: new Date().toISOString(),
 				},
 			});
-
 		} catch (error) {
 			console.error("Error getting active sessions:", error);
 			res.status(500).json({
@@ -170,11 +181,14 @@ export class AnalyticsController {
 	 * GET /api/analytics/detailed
 	 * Returns comprehensive analytics data with filtering options
 	 */
-	public async get_detailed_analytics(req: Request, res: Response): Promise<void> {
+	public async get_detailed_analytics(
+		req: Request,
+		res: Response,
+	): Promise<void> {
 		try {
 			// Validate query parameters
 			const query_validation = AnalyticsQuerySchema.safeParse(req.query);
-			
+
 			if (!query_validation.success) {
 				res.status(400).json({
 					error: "Invalid query parameters",
@@ -184,7 +198,7 @@ export class AnalyticsController {
 			}
 
 			const query_params = query_validation.data;
-			
+
 			// Get detailed statistics
 			const filter = {
 				country: query_params.country,
@@ -199,7 +213,6 @@ export class AnalyticsController {
 				filters_applied: filter,
 				generated_at: new Date().toISOString(),
 			});
-
 		} catch (error) {
 			console.error("Error getting detailed analytics:", error);
 			res.status(500).json({
@@ -213,7 +226,7 @@ export class AnalyticsController {
 	 * GET /api/status
 	 * Returns server and WebSocket connection status
 	 */
-	public async get_server_status(req: Request, res: Response): Promise<void> {
+	public async get_server_status(_req: Request, res: Response): Promise<void> {
 		try {
 			const connection_stats = this.websocket_service.get_connection_stats();
 			const summary = this.analytics_service.generate_summary();
@@ -228,7 +241,6 @@ export class AnalyticsController {
 					timestamp: new Date().toISOString(),
 				},
 			});
-
 		} catch (error) {
 			console.error("Error getting server status:", error);
 			res.status(500).json({
@@ -237,4 +249,4 @@ export class AnalyticsController {
 			});
 		}
 	}
-} 
+}

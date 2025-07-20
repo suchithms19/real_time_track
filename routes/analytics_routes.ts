@@ -1,12 +1,14 @@
 import { Router } from "express";
-import { AnalyticsController } from "../controllers/analytics_controller.js";
+import type { AnalyticsController } from "../controllers/analytics_controller.js";
 
 /**
  * Creates and configures analytics routes
  * @param analytics_controller - The analytics controller instance
  * @returns Configured Express router
  */
-export function create_analytics_routes(analytics_controller: AnalyticsController): Router {
+export function create_analytics_routes(
+	analytics_controller: AnalyticsController,
+): Router {
 	const router = Router();
 
 	// POST /api/events - Receive visitor events from websites
@@ -35,4 +37,4 @@ export function create_analytics_routes(analytics_controller: AnalyticsControlle
 	});
 
 	return router;
-} 
+}

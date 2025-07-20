@@ -4,24 +4,30 @@ import type { Request, Response, NextFunction } from "express";
  * Request logging middleware
  * Logs all incoming HTTP requests with method, URL, and timestamp
  */
-export function request_logger(req: Request, res: Response, next: NextFunction): void {
+export function request_logger(
+	req: Request,
+	res: Response,
+	next: NextFunction,
+): void {
 	const timestamp = new Date().toISOString();
 	const method = req.method;
 	const url = req.url;
 	const user_agent = req.get("User-Agent") || "Unknown";
-	
+
 	console.log(`[${timestamp}] ${method} ${url} - ${user_agent}`);
-	
+
 	// Log request completion
 	res.on("finish", () => {
 		const status_code = res.statusCode;
 		const response_time = Date.now() - req.timestamp;
-		console.log(`[${timestamp}] ${method} ${url} - ${status_code} (${response_time}ms)`);
+		console.log(
+			`[${timestamp}] ${method} ${url} - ${status_code} (${response_time}ms)`,
+		);
 	});
 
 	// Add timestamp to request for response time calculation
 	req.timestamp = Date.now();
-	
+
 	next();
 }
 
@@ -33,7 +39,7 @@ export function error_handler(
 	error: Error,
 	req: Request,
 	res: Response,
-	next: NextFunction,
+	_next: NextFunction,
 ): void {
 	console.error("Unhandled error:", error);
 
@@ -67,7 +73,7 @@ export function not_found_handler(req: Request, res: Response): void {
 		available_endpoints: [
 			"POST /api/events",
 			"GET /api/analytics/summary",
-			"GET /api/analytics/sessions", 
+			"GET /api/analytics/sessions",
 			"GET /api/analytics/detailed",
 			"GET /api/status",
 		],
@@ -78,11 +84,16 @@ export function not_found_handler(req: Request, res: Response): void {
  * CORS configuration middleware
  * Enables Cross-Origin Resource Sharing for the API
  */
-export function cors_middleware(req: Request, res: Response, next: NextFunction): void {
+export function cors_middleware(
+	req: Request,
+	res: Response,
+	next: NextFunction,
+): void {
 	// Allow specific origins in production, all origins in development
-	const allowed_origins = process.env.NODE_ENV === "production" 
-		? ["http://localhost:3000", "https://yourdomain.com"] 
-		: "*";
+	const allowed_origins =
+		process.env.NODE_ENV === "production"
+			? ["http://localhost:3000", "https://yourdomain.com"]
+			: "*";
 
 	if (allowed_origins === "*") {
 		res.header("Access-Control-Allow-Origin", "*");
@@ -94,7 +105,10 @@ export function cors_middleware(req: Request, res: Response, next: NextFunction)
 	}
 
 	res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+	res.header(
+		"Access-Control-Allow-Headers",
+		"Origin, X-Requested-With, Content-Type, Accept, Authorization",
+	);
 	res.header("Access-Control-Allow-Credentials", "true");
 
 	// Handle preflight requests
@@ -113,4 +127,4 @@ declare global {
 			timestamp: number;
 		}
 	}
-} 
+}

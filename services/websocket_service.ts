@@ -2,13 +2,16 @@ import { WebSocket, WebSocketServer } from "ws";
 import { v4 as uuidv4 } from "uuid";
 import type {
 	ServerToClientEvents,
-	ClientToServerEvents,
 	VisitorEvent,
 	AnalyticsSummary,
 	SessionData,
 } from "../interfaces/types.js";
-import { ClientToServerMessageSchema, type RequestDetailedStatsInput, type TrackDashboardActionInput } from "../schemas/validation.js";
-import { AnalyticsService } from "./analytics_service.js";
+import {
+	ClientToServerMessageSchema,
+	type RequestDetailedStatsInput,
+	type TrackDashboardActionInput,
+} from "../schemas/validation.js";
+import type { AnalyticsService } from "./analytics_service.js";
 
 interface WebSocketClient {
 	id: string;
@@ -85,14 +88,17 @@ export class WebSocketService {
 
 		try {
 			parsed_message = JSON.parse(message_text);
-		} catch (error) {
+		} catch (_error) {
 			throw new Error("Invalid JSON format");
 		}
 
 		// Validate message against schema
-		const validation_result = ClientToServerMessageSchema.safeParse(parsed_message);
+		const validation_result =
+			ClientToServerMessageSchema.safeParse(parsed_message);
 		if (!validation_result.success) {
-			throw new Error(`Invalid message schema: ${validation_result.error.message}`);
+			throw new Error(
+				`Invalid message schema: ${validation_result.error.message}`,
+			);
 		}
 
 		const validated_message = validation_result.data;
@@ -101,15 +107,23 @@ export class WebSocketService {
 		// Route message based on type
 		switch (validated_message.type) {
 			case "request_detailed_stats":
-				this.handle_detailed_stats_request(client_id, validated_message as RequestDetailedStatsInput);
+				this.handle_detailed_stats_request(
+					client_id,
+					validated_message as RequestDetailedStatsInput,
+				);
 				break;
 
 			case "track_dashboard_action":
-				this.handle_dashboard_action(client_id, validated_message as TrackDashboardActionInput);
+				this.handle_dashboard_action(
+					client_id,
+					validated_message as TrackDashboardActionInput,
+				);
 				break;
 
 			default:
-				console.warn(`Unknown message type: ${(validated_message as any).type}`);
+				console.warn(
+					`Unknown message type: ${(validated_message as any).type}`,
+				);
 		}
 	}
 
@@ -122,7 +136,9 @@ export class WebSocketService {
 		client_id: string,
 		message: RequestDetailedStatsInput,
 	): void {
-		const detailed_stats = this.analytics_service.get_detailed_stats(message.filter);
+		const detailed_stats = this.analytics_service.get_detailed_stats(
+			message.filter,
+		);
 
 		// Send detailed stats back to requesting client
 		this.send_to_client(client_id, {
@@ -140,7 +156,10 @@ export class WebSocketService {
 		client_id: string,
 		message: TrackDashboardActionInput,
 	): void {
-		console.log(`Dashboard action from ${client_id}: ${message.action}`, message.details);
+		console.log(
+			`Dashboard action from ${client_id}: ${message.action}`,
+			message.details,
+		);
 
 		// Could store dashboard actions for analytics if needed
 		// For now, just log the action
@@ -163,7 +182,10 @@ export class WebSocketService {
 	 * @param event - The visitor event
 	 * @param stats - Updated analytics summary
 	 */
-	public broadcast_visitor_update(event: VisitorEvent, stats: AnalyticsSummary): void {
+	public broadcast_visitor_update(
+		event: VisitorEvent,
+		stats: AnalyticsSummary,
+	): void {
 		const message: ServerToClientEvents = {
 			type: "visitor_update",
 			data: { event, stats },
@@ -267,7 +289,10 @@ export class WebSocketService {
 	 * @param message - Message to broadcast
 	 * @param exclude_client_id - Optional client ID to exclude from broadcast
 	 */
-	private broadcast_to_all_clients(message: any, exclude_client_id?: string): void {
+	private broadcast_to_all_clients(
+		message: any,
+		exclude_client_id?: string,
+	): void {
 		const message_string = JSON.stringify(message);
 
 		for (const [client_id, client] of this.clients.entries()) {
@@ -329,4 +354,4 @@ export class WebSocketService {
 			});
 		});
 	}
-} 
+}

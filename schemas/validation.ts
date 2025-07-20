@@ -40,11 +40,20 @@ export const ClientToServerMessageSchema = z.union([
 export const AnalyticsQuerySchema = z.object({
 	country: z.string().optional(),
 	page: z.string().optional(),
-	limit: z.string().transform((val) => parseInt(val, 10)).optional(),
+	limit: z
+		.string()
+		.transform((val) => parseInt(val, 10))
+		.optional(),
 });
 
 export type VisitorEventInput = z.infer<typeof VisitorEventSchema>;
-export type RequestDetailedStatsInput = z.infer<typeof RequestDetailedStatsSchema>;
-export type TrackDashboardActionInput = z.infer<typeof TrackDashboardActionSchema>;
-export type ClientToServerMessageInput = z.infer<typeof ClientToServerMessageSchema>;
-export type AnalyticsQueryInput = z.infer<typeof AnalyticsQuerySchema>; 
+export type RequestDetailedStatsInput = z.infer<
+	typeof RequestDetailedStatsSchema
+>;
+export type TrackDashboardActionInput = z.infer<
+	typeof TrackDashboardActionSchema
+>;
+export type ClientToServerMessageInput = z.infer<
+	typeof ClientToServerMessageSchema
+>;
+export type AnalyticsQueryInput = z.infer<typeof AnalyticsQuerySchema>;

@@ -1,5 +1,5 @@
-import { AnalyticsService } from "../services/analytics_service.js";
-import { WebSocketService } from "../services/websocket_service.js";
+import type { AnalyticsService } from "../services/analytics_service.js";
+import type { WebSocketService } from "../services/websocket_service.js";
 import type { ServerConfig } from "../config/server_config.js";
 
 /**
@@ -22,9 +22,11 @@ export class CleanupManager {
 	 */
 	public start_cleanup_scheduler(): void {
 		const interval_ms = this.config.cleanup_interval_minutes * 60 * 1000;
-		
-		console.log(`🧹 Starting cleanup scheduler (interval: ${this.config.cleanup_interval_minutes} minutes)`);
-		
+
+		console.log(
+			`🧹 Starting cleanup scheduler (interval: ${this.config.cleanup_interval_minutes} minutes)`,
+		);
+
 		this.cleanup_interval = setInterval(() => {
 			this.perform_cleanup();
 		}, interval_ms);
@@ -46,17 +48,18 @@ export class CleanupManager {
 
 		try {
 			console.log("🧹 Performing scheduled data cleanup...");
-			
+
 			const before_memory = process.memoryUsage();
-			
+
 			// Clean up old data from analytics service
 			this.analytics_service.cleanup_old_data();
-			
+
 			const after_memory = process.memoryUsage();
 			const memory_freed = before_memory.heapUsed - after_memory.heapUsed;
-			
-			console.log(`✅ Cleanup completed. Memory freed: ${this.format_bytes(memory_freed)}`);
-			
+
+			console.log(
+				`✅ Cleanup completed. Memory freed: ${this.format_bytes(memory_freed)}`,
+			);
 		} catch (error) {
 			console.error("❌ Error during cleanup:", error);
 		}
@@ -69,7 +72,9 @@ export class CleanupManager {
 	public setup_graceful_shutdown(): void {
 		// Handle Ctrl+C (SIGINT)
 		process.on("SIGINT", () => {
-			console.log("\n🛑 Received SIGINT (Ctrl+C). Initiating graceful shutdown...");
+			console.log(
+				"\n🛑 Received SIGINT (Ctrl+C). Initiating graceful shutdown...",
+			);
 			this.graceful_shutdown("SIGINT");
 		});
 
@@ -125,7 +130,6 @@ export class CleanupManager {
 
 			console.log("✅ Graceful shutdown completed");
 			process.exit(0);
-
 		} catch (error) {
 			console.error("❌ Error during graceful shutdown:", error);
 			process.exit(1);
@@ -151,14 +155,16 @@ export class CleanupManager {
 		const memory = process.memoryUsage();
 		const uptime = process.uptime();
 		const connection_stats = this.websocket_service.get_connection_stats();
-		
+
 		console.log("📊 System Statistics:");
 		console.log(`   Uptime: ${this.format_uptime(uptime)}`);
 		console.log(`   Memory Usage:`);
 		console.log(`     Heap Used: ${this.format_bytes(memory.heapUsed)}`);
 		console.log(`     Heap Total: ${this.format_bytes(memory.heapTotal)}`);
 		console.log(`     RSS: ${this.format_bytes(memory.rss)}`);
-		console.log(`   WebSocket Connections: ${connection_stats.total_connections}`);
+		console.log(
+			`   WebSocket Connections: ${connection_stats.total_connections}`,
+		);
 	}
 
 	/**
@@ -168,12 +174,12 @@ export class CleanupManager {
 	 */
 	private format_bytes(bytes: number): string {
 		if (bytes === 0) return "0 Bytes";
-		
+
 		const k = 1024;
 		const sizes = ["Bytes", "KB", "MB", "GB"];
 		const i = Math.floor(Math.log(Math.abs(bytes)) / Math.log(k));
-		
-		return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+
+		return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 	}
 
 	/**
@@ -185,12 +191,12 @@ export class CleanupManager {
 		const hours = Math.floor(seconds / 3600);
 		const minutes = Math.floor((seconds % 3600) / 60);
 		const secs = Math.floor(seconds % 60);
-		
+
 		const parts: string[] = [];
 		if (hours > 0) parts.push(`${hours}h`);
 		if (minutes > 0) parts.push(`${minutes}m`);
 		if (secs > 0) parts.push(`${secs}s`);
-		
+
 		return parts.join(" ") || "0s";
 	}
 
@@ -200,6 +206,6 @@ export class CleanupManager {
 	 * @returns Promise that resolves after the specified time
 	 */
 	private sleep(ms: number): Promise<void> {
-		return new Promise(resolve => setTimeout(resolve, ms));
+		return new Promise((resolve) => setTimeout(resolve, ms));
 	}
-} 
+}

@@ -1,4 +1,8 @@
-import type { VisitorEvent, SessionData, AnalyticsSummary } from "../interfaces/types.js";
+import type {
+	VisitorEvent,
+	SessionData,
+	AnalyticsSummary,
+} from "../interfaces/types.js";
 
 /**
  * Core analytics service that manages visitor sessions and statistics in memory
@@ -85,7 +89,10 @@ export class AnalyticsService {
 	 * @param end_time - Current timestamp
 	 * @returns Duration in seconds
 	 */
-	private calculate_session_duration(start_time: string, end_time: string): number {
+	private calculate_session_duration(
+		start_time: string,
+		end_time: string,
+	): number {
 		const start = new Date(start_time).getTime();
 		const end = new Date(end_time).getTime();
 		return Math.floor((end - start) / 1000);
@@ -99,7 +106,8 @@ export class AnalyticsService {
 		// Count active sessions (active in last 30 minutes)
 		const thirty_minutes_ago = Date.now() - 30 * 60 * 1000;
 		const active_sessions = Array.from(this.sessions.values()).filter(
-			(session) => new Date(session.last_activity).getTime() > thirty_minutes_ago,
+			(session) =>
+				new Date(session.last_activity).getTime() > thirty_minutes_ago,
 		).length;
 
 		// Convert page views map to object
@@ -127,21 +135,27 @@ export class AnalyticsService {
 		const thirty_minutes_ago = Date.now() - 30 * 60 * 1000;
 
 		let sessions = Array.from(this.sessions.values()).filter(
-			(session) => new Date(session.last_activity).getTime() > thirty_minutes_ago,
+			(session) =>
+				new Date(session.last_activity).getTime() > thirty_minutes_ago,
 		);
 
 		// Apply filters if provided
 		if (filter?.country) {
-			sessions = sessions.filter((session) => session.country === filter.country);
+			sessions = sessions.filter(
+				(session) => session.country === filter.country,
+			);
 		}
 
 		if (filter?.page) {
-			sessions = sessions.filter((session) => session.current_page === filter.page);
+			sessions = sessions.filter(
+				(session) => session.current_page === filter.page,
+			);
 		}
 
 		return sessions.sort(
 			(a, b) =>
-				new Date(b.last_activity).getTime() - new Date(a.last_activity).getTime(),
+				new Date(b.last_activity).getTime() -
+				new Date(a.last_activity).getTime(),
 		);
 	}
 
@@ -167,14 +181,17 @@ export class AnalyticsService {
 		}
 
 		if (filter?.page) {
-			filtered_events = filtered_events.filter((event) => event.page === filter.page);
+			filtered_events = filtered_events.filter(
+				(event) => event.page === filter.page,
+			);
 		}
 
 		// Get recent events (last 50)
 		const recent_events = filtered_events
 			.slice(-50)
 			.sort(
-				(a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+				(a, b) =>
+					new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
 			);
 
 		// Country breakdown
@@ -241,4 +258,4 @@ export class AnalyticsService {
 			(event) => new Date(event.timestamp).getTime() >= today_start.getTime(),
 		);
 	}
-} 
+}

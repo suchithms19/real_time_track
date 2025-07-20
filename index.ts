@@ -17,7 +17,7 @@ import {
 
 /**
  * Real-Time Visitor Analytics Server
- * 
+ *
  * A comprehensive backend system that:
  * - Receives visitor events via REST API
  * - Processes and stores analytics data in memory
@@ -35,17 +35,24 @@ async function start_server(): Promise<void> {
 
 		// Initialize core services
 		console.log("⚙️  Initializing services...");
-		
+
 		// Create analytics service (core business logic)
 		const analytics_service = new AnalyticsService();
 		console.log("✅ Analytics service initialized");
 
 		// Create WebSocket service (real-time communication)
-		const websocket_service = new WebSocketService(analytics_service, config.websocket_port);
+		const websocket_service = new WebSocketService(
+			analytics_service,
+			config.websocket_port,
+		);
 		console.log("✅ WebSocket service initialized");
 
 		// Create cleanup manager (memory management & graceful shutdown)
-		const cleanup_manager = new CleanupManager(analytics_service, websocket_service, config);
+		const cleanup_manager = new CleanupManager(
+			analytics_service,
+			websocket_service,
+			config,
+		);
 		console.log("✅ Cleanup manager initialized");
 
 		// Create Express app
@@ -53,15 +60,17 @@ async function start_server(): Promise<void> {
 
 		// Apply middleware
 		console.log("🔧 Configuring middleware...");
-		
+
 		// CORS middleware (custom implementation)
 		app.use(cors_middleware);
-		
+
 		// Built-in CORS middleware as fallback
-		app.use(cors({
-			origin: config.cors_origins,
-			credentials: true,
-		}));
+		app.use(
+			cors({
+				origin: config.cors_origins,
+				credentials: true,
+			}),
+		);
 
 		// Body parsing middleware
 		app.use(express.json({ limit: "10mb" }));
@@ -71,14 +80,17 @@ async function start_server(): Promise<void> {
 		app.use(request_logger);
 
 		// Create analytics controller and routes
-		const analytics_controller = new AnalyticsController(analytics_service, websocket_service);
+		const analytics_controller = new AnalyticsController(
+			analytics_service,
+			websocket_service,
+		);
 		const analytics_routes = create_analytics_routes(analytics_controller);
 
 		// Mount API routes
 		app.use("/api", analytics_routes);
 
 		// Health check endpoint
-		app.get("/health", (req, res) => {
+		app.get("/health", (_req, res) => {
 			res.json({
 				status: "healthy",
 				timestamp: new Date().toISOString(),
@@ -89,7 +101,7 @@ async function start_server(): Promise<void> {
 		});
 
 		// Root endpoint with API information
-		app.get("/", (req, res) => {
+		app.get("/", (_req, res) => {
 			res.json({
 				service: "Real-Time Visitor Analytics API",
 				version: "1.0.0",
@@ -118,7 +130,9 @@ async function start_server(): Promise<void> {
 
 		// Start HTTP server
 		const http_server = app.listen(config.port, config.host, () => {
-			console.log(`🌐 HTTP Server running on http://${config.host}:${config.port}`);
+			console.log(
+				`🌐 HTTP Server running on http://${config.host}:${config.port}`,
+			);
 		});
 
 		// Setup graceful shutdown
@@ -128,9 +142,12 @@ async function start_server(): Promise<void> {
 		cleanup_manager.start_cleanup_scheduler();
 
 		// Log system stats periodically (every 10 minutes)
-		setInterval(() => {
-			cleanup_manager.log_system_stats();
-		}, 10 * 60 * 1000);
+		setInterval(
+			() => {
+				cleanup_manager.log_system_stats();
+			},
+			10 * 60 * 1000,
+		);
 
 		// Log initial stats after 5 seconds
 		setTimeout(() => {
@@ -144,7 +161,6 @@ async function start_server(): Promise<void> {
 		http_server.on("error", (error: Error) => {
 			console.error("💥 HTTP server error:", error);
 		});
-
 	} catch (error) {
 		console.error("💥 Failed to start server:", error);
 		process.exit(1);
@@ -153,7 +169,12 @@ async function start_server(): Promise<void> {
 
 // Handle unhandled promise rejections
 process.on("unhandledRejection", (reason, promise) => {
-	console.error("💥 Unhandled Promise Rejection at:", promise, "reason:", reason);
+	console.error(
+		"💥 Unhandled Promise Rejection at:",
+		promise,
+		"reason:",
+		reason,
+	);
 });
 
 // Handle uncaught exceptions

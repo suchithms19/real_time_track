@@ -1,15 +1,18 @@
 {
-  "name": "mind",
-  "module": "index.ts",
-  "type": "module",
-  "private": true,
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "scripts": {
-    "dev": "bun run --watch index.ts"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  }
+	"name": "real-time-visitor-analytics",
+	"module": "index.ts",
+	"type": "module",
+	"private": true,
+	"devDependencies": {
+		"@biomejs/biome": "2.1.2",
+		"@types/bun": "latest"
+	},
+	"scripts": {
+		"dev": "bun run --watch index.ts",
+		"format": "biome format --write",
+		"lint": "biome lint --write"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	}
 }

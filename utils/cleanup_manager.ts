@@ -47,8 +47,6 @@ export class CleanupManager {
 		}
 
 		try {
-			console.log("🧹 Performing scheduled data cleanup...");
-
 			const before_memory = process.memoryUsage();
 
 			// Clean up old data from analytics service
@@ -57,9 +55,10 @@ export class CleanupManager {
 			const after_memory = process.memoryUsage();
 			const memory_freed = before_memory.heapUsed - after_memory.heapUsed;
 
-			console.log(
-				`✅ Cleanup completed. Memory freed: ${this.format_bytes(memory_freed)}`,
-			);
+			if (memory_freed > 1024 * 1024) {
+				// Only log if freed > 1MB
+				console.log(`🧹 Cleanup freed: ${this.format_bytes(memory_freed)}`);
+			}
 		} catch (error) {
 			console.error("❌ Error during cleanup:", error);
 		}
@@ -114,7 +113,6 @@ export class CleanupManager {
 			// Stop cleanup scheduler
 			if (this.cleanup_interval) {
 				clearInterval(this.cleanup_interval);
-				console.log("✅ Cleanup scheduler stopped");
 			}
 
 			// Perform final cleanup
@@ -143,7 +141,6 @@ export class CleanupManager {
 		if (this.cleanup_interval) {
 			clearInterval(this.cleanup_interval);
 			this.cleanup_interval = undefined;
-			console.log("🛑 Cleanup scheduler stopped");
 		}
 	}
 

@@ -49,7 +49,6 @@ export class WebSocketService {
 			};
 
 			this.clients.set(client_id, client);
-			console.log(`Dashboard client connected: ${client_id}`);
 
 			// Send welcome message with current stats
 			this.send_user_connected_event(client_id);
@@ -102,7 +101,6 @@ export class WebSocketService {
 		}
 
 		const validated_message = validation_result.data;
-		console.log(`Received message from ${client_id}:`, validated_message.type);
 
 		// Route message based on type
 		switch (validated_message.type) {
@@ -153,14 +151,9 @@ export class WebSocketService {
 	 * @param message - The action tracking message
 	 */
 	private handle_dashboard_action(
-		client_id: string,
-		message: TrackDashboardActionInput,
+		_client_id: string,
+		_message: TrackDashboardActionInput,
 	): void {
-		console.log(
-			`Dashboard action from ${client_id}: ${message.action}`,
-			message.details,
-		);
-
 		// Could store dashboard actions for analytics if needed
 		// For now, just log the action
 	}
@@ -171,7 +164,6 @@ export class WebSocketService {
 	 */
 	private handle_client_disconnect(client_id: string): void {
 		this.clients.delete(client_id);
-		console.log(`Dashboard client disconnected: ${client_id}`);
 
 		// Broadcast user disconnected event to remaining clients
 		this.broadcast_user_disconnected_event();

@@ -34,33 +34,21 @@ async function start_server(): Promise<void> {
 		log_config(config);
 
 		// Initialize core services
-		console.log("⚙️  Initializing services...");
-
-		// Create analytics service (core business logic)
 		const analytics_service = new AnalyticsService();
-		console.log("✅ Analytics service initialized");
-
-		// Create WebSocket service (real-time communication)
 		const websocket_service = new WebSocketService(
 			analytics_service,
 			config.websocket_port,
 		);
-		console.log("✅ WebSocket service initialized");
-
-		// Create cleanup manager (memory management & graceful shutdown)
 		const cleanup_manager = new CleanupManager(
 			analytics_service,
 			websocket_service,
 			config,
 		);
-		console.log("✅ Cleanup manager initialized");
 
 		// Create Express app
 		const app = express();
 
 		// Apply middleware
-		console.log("🔧 Configuring middleware...");
-
 		// CORS middleware (custom implementation)
 		app.use(cors_middleware);
 
@@ -155,7 +143,6 @@ async function start_server(): Promise<void> {
 		}, 5000);
 
 		console.log("🎉 Server startup completed successfully!");
-		console.log("📡 Ready to receive visitor events and serve analytics data");
 
 		// Handle HTTP server errors
 		http_server.on("error", (error: Error) => {

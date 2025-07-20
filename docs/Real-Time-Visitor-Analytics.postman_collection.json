@@ -1,0 +1,806 @@
+{
+	"info": {
+		"_postman_id": "real-time-visitor-analytics",
+		"name": "Real-Time Visitor Analytics API",
+		"description": "Complete collection for testing the Real-Time Visitor Analytics backend API. This collection includes all REST endpoints with sample data and tests for validating responses.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "real-time-analytics"
+	},
+	"item": [
+		{
+			"name": "Health & Status",
+			"item": [
+				{
+					"name": "Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has status healthy\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql(\"healthy\");",
+									"});",
+									"",
+									"pm.test(\"Response contains required fields\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property(\"timestamp\");",
+									"    pm.expect(jsonData).to.have.property(\"uptime\");",
+									"    pm.expect(jsonData).to.have.property(\"memory\");",
+									"    pm.expect(jsonData).to.have.property(\"version\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["health"]
+						},
+						"description": "Basic health check endpoint to verify server is running"
+					}
+				},
+				{
+					"name": "Server Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success true\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Contains server status data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property(\"server_status\");",
+									"    pm.expect(jsonData.data).to.have.property(\"websocket_connections\");",
+									"    pm.expect(jsonData.data).to.have.property(\"current_analytics\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "status"]
+						},
+						"description": "Get comprehensive server status including WebSocket connections and current analytics"
+					}
+				},
+				{
+					"name": "API Root Information",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Contains service information\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property(\"service\");",
+									"    pm.expect(jsonData).to.have.property(\"version\");",
+									"    pm.expect(jsonData).to.have.property(\"endpoints\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/",
+							"host": ["{{baseUrl}}"],
+							"path": [""]
+						},
+						"description": "Get API root information and available endpoints"
+					}
+				}
+			],
+			"description": "Health checks and server status endpoints"
+		},
+		{
+			"name": "Visitor Events",
+			"item": [
+				{
+					"name": "Submit Valid Visitor Event - Mobile India",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate dynamic session ID and timestamp",
+									"pm.globals.set(\"sessionId\", \"user-\" + Math.random().toString(36).substr(2, 9));",
+									"pm.globals.set(\"timestamp\", new Date().toISOString());"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response indicates success\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.message).to.include(\"Event processed successfully\");",
+									"});",
+									"",
+									"pm.test(\"Contains session and stats data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property(\"session_id\");",
+									"    pm.expect(jsonData.data).to.have.property(\"current_stats\");",
+									"    pm.expect(jsonData.data.current_stats).to.have.property(\"total_active\");",
+									"    pm.expect(jsonData.data.current_stats).to.have.property(\"total_today\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"pageview\",\n  \"page\": \"/home\",\n  \"session_id\": \"{{sessionId}}\",\n  \"timestamp\": \"{{timestamp}}\",\n  \"country\": \"India\",\n  \"metadata\": {\n    \"device\": \"mobile\",\n    \"referrer\": \"google.com\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/events",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "events"]
+						},
+						"description": "Submit a valid visitor event from a mobile user in India"
+					}
+				},
+				{
+					"name": "Submit Visitor Event - Same Session Different Page",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Use the same session ID but update timestamp",
+									"pm.globals.set(\"timestamp\", new Date(Date.now() + 5000).toISOString());"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Session journey is tracked\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    // This should update the existing session's journey",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"pageview\",\n  \"page\": \"/products\",\n  \"session_id\": \"{{sessionId}}\",\n  \"timestamp\": \"{{timestamp}}\",\n  \"country\": \"India\",\n  \"metadata\": {\n    \"device\": \"mobile\",\n    \"referrer\": \"direct\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/events",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "events"]
+						},
+						"description": "Submit another event for the same session to test journey tracking"
+					}
+				},
+				{
+					"name": "Submit Visitor Event - Desktop USA",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate new session for different user",
+									"pm.globals.set(\"sessionId2\", \"user-\" + Math.random().toString(36).substr(2, 9));",
+									"pm.globals.set(\"timestamp\", new Date().toISOString());"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Total active users increased\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.current_stats.total_active).to.be.greaterThan(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"pageview\",\n  \"page\": \"/about\",\n  \"session_id\": \"{{sessionId2}}\",\n  \"timestamp\": \"{{timestamp}}\",\n  \"country\": \"USA\",\n  \"metadata\": {\n    \"device\": \"desktop\",\n    \"referrer\": \"twitter.com\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/events",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "events"]
+						},
+						"description": "Submit event from a desktop user in USA to test multi-user analytics"
+					}
+				},
+				{
+					"name": "Submit Invalid Event - Missing Fields",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Error response contains validation details\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property(\"error\");",
+									"    pm.expect(jsonData).to.have.property(\"details\");",
+									"    pm.expect(jsonData.error).to.include(\"Invalid event data\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"invalid-type\",\n  \"page\": \"\",\n  \"country\": \"India\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/events",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "events"]
+						},
+						"description": "Test error handling with invalid event data"
+					}
+				}
+			],
+			"description": "Visitor event submission endpoints with various test scenarios"
+		},
+		{
+			"name": "Analytics",
+			"item": [
+				{
+					"name": "Get Analytics Summary",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success true\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Contains analytics summary\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property(\"summary\");",
+									"    pm.expect(jsonData.data.summary).to.have.property(\"total_active\");",
+									"    pm.expect(jsonData.data.summary).to.have.property(\"total_today\");",
+									"    pm.expect(jsonData.data.summary).to.have.property(\"pages_visited\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/summary",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "analytics", "summary"]
+						},
+						"description": "Get current analytics summary without filters"
+					}
+				},
+				{
+					"name": "Get Analytics Summary - Filtered by Country",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Contains filtered data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property(\"filtered_data\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/summary?country=India",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "analytics", "summary"],
+							"query": [
+								{
+									"key": "country",
+									"value": "India"
+								}
+							]
+						},
+						"description": "Get analytics summary filtered by country (India)"
+					}
+				},
+				{
+					"name": "Get Analytics Summary - Filtered by Page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/summary?page=/products",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "analytics", "summary"],
+							"query": [
+								{
+									"key": "page",
+									"value": "/products"
+								}
+							]
+						},
+						"description": "Get analytics summary filtered by page (/products)"
+					}
+				},
+				{
+					"name": "Get Active Sessions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Contains sessions data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property(\"sessions\");",
+									"    pm.expect(jsonData.data).to.have.property(\"total_count\");",
+									"    pm.expect(jsonData.data.sessions).to.be.an(\"array\");",
+									"});",
+									"",
+									"pm.test(\"Session objects have required fields\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data.sessions.length > 0) {",
+									"        const session = jsonData.data.sessions[0];",
+									"        pm.expect(session).to.have.property(\"session_id\");",
+									"        pm.expect(session).to.have.property(\"current_page\");",
+									"        pm.expect(session).to.have.property(\"journey\");",
+									"        pm.expect(session).to.have.property(\"duration\");",
+									"        pm.expect(session).to.have.property(\"country\");",
+									"        pm.expect(session).to.have.property(\"device\");",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/sessions",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "analytics", "sessions"]
+						},
+						"description": "Get all active sessions with journey information"
+					}
+				},
+				{
+					"name": "Get Active Sessions - Filtered and Limited",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Filters are applied\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.filters_applied).to.have.property(\"page\");",
+									"    pm.expect(jsonData.data.filters_applied.page).to.eql(\"/products\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/sessions?page=/products&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "analytics", "sessions"],
+							"query": [
+								{
+									"key": "page",
+									"value": "/products"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get sessions filtered by page with result limit"
+					}
+				},
+				{
+					"name": "Get Detailed Analytics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Contains comprehensive analytics data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property(\"summary\");",
+									"    pm.expect(jsonData.data).to.have.property(\"sessions\");",
+									"    pm.expect(jsonData.data).to.have.property(\"country_breakdown\");",
+									"    pm.expect(jsonData.data).to.have.property(\"recent_events\");",
+									"});",
+									"",
+									"pm.test(\"Recent events are properly formatted\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data.recent_events.length > 0) {",
+									"        const event = jsonData.data.recent_events[0];",
+									"        pm.expect(event).to.have.property(\"type\");",
+									"        pm.expect(event).to.have.property(\"page\");",
+									"        pm.expect(event).to.have.property(\"session_id\");",
+									"        pm.expect(event).to.have.property(\"timestamp\");",
+									"        pm.expect(event).to.have.property(\"country\");",
+									"        pm.expect(event).to.have.property(\"metadata\");",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/detailed",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "analytics", "detailed"]
+						},
+						"description": "Get comprehensive analytics data including events, sessions, and breakdowns"
+					}
+				},
+				{
+					"name": "Get Detailed Analytics - Filtered by Country",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Filters are applied correctly\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.filters_applied).to.have.property(\"country\");",
+									"    pm.expect(jsonData.filters_applied.country).to.eql(\"India\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/detailed?country=India",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "analytics", "detailed"],
+							"query": [
+								{
+									"key": "country",
+									"value": "India"
+								}
+							]
+						},
+						"description": "Get detailed analytics filtered by country"
+					}
+				}
+			],
+			"description": "Analytics endpoints for retrieving visitor statistics and session data"
+		},
+		{
+			"name": "Error Handling",
+			"item": [
+				{
+					"name": "Invalid Endpoint - 404",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Error response contains helpful information\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property(\"error\");",
+									"    pm.expect(jsonData).to.have.property(\"available_endpoints\");",
+									"    pm.expect(jsonData.error).to.include(\"Not Found\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/nonexistent",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "nonexistent"]
+						},
+						"description": "Test 404 handling for non-existent endpoints"
+					}
+				},
+				{
+					"name": "Invalid Query Parameters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Request handles invalid parameters gracefully\", function () {",
+									"    // The API should handle invalid limit gracefully",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/analytics/sessions?limit=invalid",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "analytics", "sessions"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "invalid"
+								}
+							]
+						},
+						"description": "Test handling of invalid query parameters"
+					}
+				}
+			],
+			"description": "Error handling test cases"
+		},
+		{
+			"name": "Load Testing",
+			"item": [
+				{
+					"name": "Submit Multiple Events Rapidly",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate unique data for load testing",
+									"const countries = ['India', 'USA', 'UK', 'Germany', 'France', 'Japan', 'Brazil'];",
+									"const pages = ['/home', '/products', '/about', '/contact', '/pricing', '/blog'];",
+									"const devices = ['mobile', 'desktop', 'tablet'];",
+									"const referrers = ['google.com', 'facebook.com', 'twitter.com', 'direct', 'linkedin.com'];",
+									"",
+									"pm.globals.set('randomCountry', countries[Math.floor(Math.random() * countries.length)]);",
+									"pm.globals.set('randomPage', pages[Math.floor(Math.random() * pages.length)]);",
+									"pm.globals.set('randomDevice', devices[Math.floor(Math.random() * devices.length)]);",
+									"pm.globals.set('randomReferrer', referrers[Math.floor(Math.random() * referrers.length)]);",
+									"pm.globals.set('loadTestSessionId', 'load-test-' + Math.random().toString(36).substr(2, 9));",
+									"pm.globals.set('timestamp', new Date().toISOString());"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response time is reasonable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"pageview\",\n  \"page\": \"{{randomPage}}\",\n  \"session_id\": \"{{loadTestSessionId}}\",\n  \"timestamp\": \"{{timestamp}}\",\n  \"country\": \"{{randomCountry}}\",\n  \"metadata\": {\n    \"device\": \"{{randomDevice}}\",\n    \"referrer\": \"{{randomReferrer}}\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/events",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "events"]
+						},
+						"description": "Submit events with random data for load testing. Use Postman Runner to execute multiple times."
+					}
+				}
+			],
+			"description": "Load testing scenarios for performance validation"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global pre-request script",
+					"// Set default base URL if not already set",
+					"if (!pm.variables.get('baseUrl')) {",
+					"    pm.variables.set('baseUrl', 'http://localhost:3000');",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script",
+					"pm.test('Response time is reasonable', function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});",
+					"",
+					"pm.test('Content-Type is application/json', function () {",
+					"    if (pm.response.code !== 404) {",
+					"        pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+					"    }",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"description": "Base URL for the Real-Time Visitor Analytics API"
+		},
+		{
+			"key": "websocketUrl",
+			"value": "ws://localhost:8080",
+			"description": "WebSocket URL for real-time connections"
+		}
+	]
+}

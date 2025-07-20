@@ -9,24 +9,17 @@ export function request_logger(
 	res: Response,
 	next: NextFunction,
 ): void {
-	const timestamp = new Date().toISOString();
-	const method = req.method;
-	const url = req.url;
-	const user_agent = req.get("User-Agent") || "Unknown";
-
-	console.log(`[${timestamp}] ${method} ${url} - ${user_agent}`);
+	// Add timestamp to request for response time calculation
+	req.timestamp = Date.now();
 
 	// Log request completion
 	res.on("finish", () => {
+		const method = req.method;
+		const url = req.url;
 		const status_code = res.statusCode;
 		const response_time = Date.now() - req.timestamp;
-		console.log(
-			`[${timestamp}] ${method} ${url} - ${status_code} (${response_time}ms)`,
-		);
+		console.log(`${method} ${url} - ${status_code} (${response_time}ms)`);
 	});
-
-	// Add timestamp to request for response time calculation
-	req.timestamp = Date.now();
 
 	next();
 }

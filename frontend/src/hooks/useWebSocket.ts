@@ -5,6 +5,7 @@ import type {
   SessionData,
   FilterState,
 } from '../types/analytics';
+import { useNotificationSound } from './useNotificationSound';
 
 const WS_URL = 'ws://localhost:8080';
 const RECONNECT_INTERVAL = 3000;
@@ -15,6 +16,16 @@ export const useWebSocket = () => {
   const reconnectTimeoutRef = useRef<number | undefined>(undefined);
   const reconnectAttempts = useRef(0);
   const [isManualDisconnect, setIsManualDisconnect] = useState(false);
+
+  // Sound notification hook
+  const {
+    sound_state,
+    play_notification,
+    play_double_beep,
+    toggle_sound,
+    set_volume,
+    cleanup: cleanup_sound,
+  } = useNotificationSound();
 
   const [dashboardState, setDashboardState] = useState<DashboardState>({
     connectionStatus: 'disconnected',
@@ -28,6 +39,9 @@ export const useWebSocket = () => {
     totalDashboards: 0,
     alerts: [],
   });
+
+  // Visual notification state
+  const [is_new_visitor_flash, setIsNewVisitorFlash] = useState(false);
 
   const updateConnectionStatus = useCallback((status: ConnectionStatus) => {
     setDashboardState(prev => ({
@@ -47,6 +61,11 @@ export const useWebSocket = () => {
             analytics: message.data.stats,
             recentEvents: [message.data.event, ...prev.recentEvents].slice(0, 50),
           }));
+          // Play notification sound for new visitor
+          play_notification();
+          // Trigger visual flash
+          setIsNewVisitorFlash(true);
+          setTimeout(() => setIsNewVisitorFlash(false), 1000);
           break;
 
         case 'session_activity':
@@ -69,6 +88,10 @@ export const useWebSocket = () => {
             ...prev,
             alerts: [message.data, ...prev.alerts].slice(0, 10),
           }));
+          // Play double beep for alerts
+          if (message.data.level === 'warning' || message.data.level === 'error') {
+            play_double_beep();
+          }
           break;
 
         case 'detailed_stats_response':
@@ -227,6 +250,7 @@ export const useWebSocket = () => {
       if (ws.current) {
         ws.current.close();
       }
+      cleanup_sound();
     };
   }, []);
 
@@ -240,5 +264,11 @@ export const useWebSocket = () => {
     clearAlerts,
     clearEvents,
     clearSessions,
+    // Sound notification controls
+    sound_state,
+    toggle_sound,
+    set_volume,
+    // Visual notification state
+    is_new_visitor_flash,
   };
 }; 

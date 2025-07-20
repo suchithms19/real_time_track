@@ -6,6 +6,7 @@ import { ActivityLog } from './ActivityLog';
 import { ActiveSessions } from './ActiveSessions';
 import { FilterControls } from './FilterControls';
 import { AlertsPanel } from './AlertsPanel';
+import { SoundControls } from './SoundControls';
 import type { FilterState } from '../types/analytics';
 
 export const Dashboard: React.FC = () => {
@@ -17,6 +18,10 @@ export const Dashboard: React.FC = () => {
     clearAlerts,
     clearEvents,
     clearSessions,
+    sound_state,
+    toggle_sound,
+    set_volume,
+    is_new_visitor_flash,
   } = useWebSocket();
 
   const [currentFilter, setCurrentFilter] = useState<FilterState>({});
@@ -105,12 +110,14 @@ export const Dashboard: React.FC = () => {
         {/* Visitor Metrics - Top Row */}
         <div className="col-span-12 mb-4">
           <div className="grid grid-cols-4 gap-4">
-            <MetricsCard
-              title="Active Visitors"
-              value={dashboardState.analytics.total_active}
-              subtitle="Live Sessions"
-              valueColor="text-green-400"
-            />
+            <div className={`transition-all duration-200 ${is_new_visitor_flash ? 'animate-pulse bg-green-500/20 rounded-lg' : ''}`}>
+              <MetricsCard
+                title="Active Visitors"
+                value={dashboardState.analytics.total_active}
+                subtitle="Live Sessions"
+                valueColor="text-green-400"
+              />
+            </div>
             <MetricsCard
               title="Total Today"
               value={dashboardState.analytics.total_today}
@@ -156,6 +163,12 @@ export const Dashboard: React.FC = () => {
             filter={currentFilter}
             analytics={dashboardState.analytics}
             onFilterChange={handleFilterChange}
+          />
+          
+          <SoundControls
+            sound_state={sound_state}
+            toggle_sound={toggle_sound}
+            set_volume={set_volume}
           />
           
           <AlertsPanel

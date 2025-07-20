@@ -25,6 +25,7 @@ A complete real-time visitor analytics system with tactical-style dashboard. Bui
 - ✅ Country/page filtering with WebSocket communication
 - ✅ Auto-reconnecting WebSocket connection management
 - ✅ System alerts and status monitoring
+- ✅ **Sound & visual notifications** for new visitors and alerts
 
 ### WebSocket Events
 - ✅ **Server→Client**: `visitor_update`, `session_activity`, `user_connected/disconnected`, `alert`
